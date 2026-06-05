@@ -1,0 +1,7 @@
+# No external pip packages required.
+# KEZMO uses only Python 3 standard library modules.
+#
+# However, the following CLI tools must be installed on your Kali Linux system:
+#
+#   sudo apt install -y exiftool binwalk steghide sox foremost john
+#   gem install zsteg   (optional, for PNG LSB analysis)

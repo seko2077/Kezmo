@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Full Git Cheatsheet</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0f14;
+  --g-dark:#0c1f0e;--g-border:#2a6e2a;--g-head:#1a4a1a;--g-txt:#7fff7f;
+  --p-dark:#0d0a1f;--p-border:#5a2d9a;--p-head:#2a1060;--p-txt:#c47fff;
+  --t-dark:#051520;--t-border:#0e6a8a;--t-head:#052a3a;--t-txt:#3fc8f0;
+  --o-dark:#1a0e00;--o-border:#8a4a00;--o-head:#2a1800;--o-txt:#ffb347;
+  --r-dark:#1a0505;--r-border:#8a1a1a;--r-head:#2a0808;--r-txt:#ff7070;
+  --d-dark:#0d1117;--d-border:#2a3a2a;--d-head:#161b22;--d-txt:#8b9e8b;
+  --white:#e8f0e8;--gray:#6e8a6e;--code:#7fff7f;--yellow:#ffe066;--cyan:#3fc8f0;
+}
+
+body{
+  background:var(--bg);
+  font-family:'Share Tech Mono',monospace;
+  font-size:7.8px;
+  color:var(--white);
+  padding:5px;
+  width:1500px;
+  margin:0 auto;
+}
+
+/* SAVE BUTTON */
+#saveBtn{
+  position:fixed;top:10px;right:10px;z-index:9999;
+  background:linear-gradient(135deg,#1a6a1a,#2ea02e);
+  color:#fff;border:2px solid #4ade80;border-radius:6px;
+  padding:8px 16px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;
+  cursor:pointer;letter-spacing:0.5px;box-shadow:0 0 12px rgba(46,160,46,0.5);
+}
+#saveBtn:hover{background:linear-gradient(135deg,#2ea02e,#4ade80);transform:scale(1.05);}
+#saveBtn:disabled{opacity:0.5;cursor:wait;}
+
+/* TITLE */
+.title-bar{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  background:linear-gradient(90deg,#0a0f14,#0d1520,#0a0f14);
+  border:2px solid #5a2d9a;border-radius:4px;padding:7px 12px;margin-bottom:5px;
+}
+.title-bar .icon-box{
+  width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:700;
+}
+.title-bar h1{
+  font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;
+  color:var(--white);letter-spacing:1px;text-transform:uppercase;
+}
+
+/* PANEL */
+.panel{border-radius:3px;border-width:1px;border-style:solid;overflow:hidden;display:flex;flex-direction:column;}
+.panel.g{background:var(--g-dark);border-color:var(--g-border);}
+.panel.p{background:var(--p-dark);border-color:var(--p-border);}
+.panel.t{background:var(--t-dark);border-color:var(--t-border);}
+.panel.o{background:var(--o-dark);border-color:var(--o-border);}
+.panel.r{background:var(--r-dark);border-color:var(--r-border);}
+.panel.d{background:var(--d-dark);border-color:var(--d-border);}
+
+.ph{
+  padding:3px 6px;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:0.3px;display:flex;align-items:center;gap:4px;
+}
+.panel.g .ph{background:var(--g-head);color:var(--g-txt);}
+.panel.p .ph{background:var(--p-head);color:var(--p-txt);}
+.panel.t .ph{background:var(--t-head);color:var(--t-txt);}
+.panel.o .ph{background:var(--o-head);color:var(--o-txt);}
+.panel.r .ph{background:var(--r-head);color:var(--r-txt);}
+.panel.d .ph{background:var(--d-head);color:var(--d-txt);}
+
+.pb{padding:3px 5px;flex:1;}
+
+/* TABLES */
+table{width:100%;border-collapse:collapse;}
+th{
+  background:rgba(0,0,0,0.3);color:#5a7a5a;font-size:7px;text-align:left;
+  padding:1.5px 3px;border-bottom:1px solid rgba(255,255,255,0.07);letter-spacing:0.5px;text-transform:uppercase;
+}
+td{padding:1px 3px;vertical-align:top;border-bottom:1px solid rgba(255,255,255,0.03);}
+tr:last-child td{border-bottom:none;}
+.c{color:#7fff7f;white-space:nowrap;}
+.e{color:#c8d8c8;font-size:7.5px;}
+.sub{color:#5a7a5a;font-size:7px;}
+
+/* SECTION LABELS */
+.sl{
+  color:var(--yellow);font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;
+  padding:2px 3px 1px;margin-top:2px;border-top:1px solid rgba(255,255,255,0.07);
+}
+.sl:first-child,.sl.first{border-top:none;margin-top:0;}
+
+/* LAYOUTS */
+.row1{display:grid;grid-template-columns:240px 220px 1fr 210px 165px;gap:4px;margin-bottom:4px;}
+.row-mid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:4px;}
+.row-mid-inner{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.row2{display:grid;grid-template-columns:1fr 1fr 1fr 1fr 150px;gap:4px;margin-bottom:4px;}
+
+/* DAILY WORKFLOW INNER */
+.dw-inner{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+
+/* STASH INNER */
+.stash-inner{display:grid;grid-template-columns:1fr 1fr 1fr;gap:0;}
+.stash-col{padding:2px 4px;}
+.stash-col+.stash-col{border-left:1px solid rgba(255,255,255,0.07);}
+
+/* CHECKS */
+.chk{color:#4ade80;}
+.x{color:#f87171;}
+.dot-item{display:flex;gap:3px;padding:0.8px 0;font-size:7.5px;color:#c8d8c8;align-items:flex-start;}
+.dot-item span:first-child{flex-shrink:0;}
+
+/* CONFLICTS */
+.conflict{
+  background:rgba(0,0,0,0.3);border:1px solid rgba(239,68,68,0.25);border-radius:2px;
+  padding:2px 4px;margin:2px 0;font-size:7.5px;
+}
+
+/* BRANCH DIAGRAM */
+.bdiag{padding:4px 6px 2px;}
+.bdiag svg{width:100%;}
+
+/* LR DIAGRAM */
+.lr{display:flex;align-items:center;justify-content:space-around;padding:4px 2px;gap:3px;}
+.lr-box{background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.12);border-radius:2px;padding:3px 5px;text-align:center;font-size:7px;}
+.lr-box strong{display:block;font-size:8px;margin-bottom:2px;}
+.lr-arr{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:7px;color:#6e8a6e;}
+
+/* RESET diagram */
+.rr{display:flex;align-items:center;gap:2px;padding:1px 3px;font-size:7px;}
+.rlab{color:#3fc8f0;font-weight:700;min-width:44px;font-size:7px;}
+.cd{width:14px;height:14px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;flex-shrink:0;}
+.cd.g{background:#4a4a4a;color:#ccc;}
+.cd.h{background:#f97316;color:#fff;}
+.lh{height:1px;width:7px;background:#4a4a4a;display:inline-block;vertical-align:middle;}
+.rdesc{color:#c8d8c8;font-size:6.8px;}
+
+/* SYNC BOX */
+.sync{background:rgba(0,0,0,0.25);border-radius:2px;padding:2px 4px;margin:2px 0;font-size:7.5px;}
+.sync .t{color:var(--yellow);font-weight:700;}
+
+/* ORIGIN BOX */
+.orig{background:rgba(0,0,0,0.25);border:1px solid rgba(63,200,240,0.2);border-radius:2px;padding:2px 4px;margin:2px 0;font-size:7.5px;color:#c8d8c8;}
+.orig strong{color:var(--cyan);}
+
+/* LEGEND */
+.legend{display:flex;gap:6px;flex-wrap:wrap;padding:2px 3px;font-size:7px;}
+.li{display:flex;align-items:center;gap:2px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+
+/* GITIGNORE */
+.ig-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:2px 3px;}
+.ig-sec .lang{color:var(--yellow);font-weight:700;font-size:7px;margin-bottom:1px;}
+.ig-sec div{color:#c8d8c8;font-size:7.5px;padding:0.3px 0;}
+
+/* GIT FLOW TABLE */
+.gf td:first-child{color:#c8d8c8;white-space:nowrap;}
+
+/* BOTTOM BAR */
+.bottom{
+  display:flex;align-items:center;justify-content:space-between;
+  background:#050d05;border:1px solid #1a2a1a;border-radius:3px;padding:5px 12px;
+}
+.bottom .brand{font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;color:var(--cyan);display:flex;align-items:center;gap:5px;}
+.bottom .loop{display:flex;align-items:center;gap:6px;font-size:8px;color:#6e8a6e;}
+.lnum{background:#5a2d9a;color:#fff;border-radius:50%;width:14px;height:14px;display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;flex-shrink:0;}
+.bottom .rem{font-size:9px;color:var(--yellow);font-weight:700;}
+.arr{color:#5a7a5a;}
+
+code{color:#7fff7f;background:rgba(127,255,127,0.08);border-radius:2px;padding:0 2px;}
+
+/* STEPS */
+.steps{padding:1px 3px;}
+.si{display:flex;gap:3px;padding:0.8px 0;font-size:7.5px;color:#c8d8c8;align-items:flex-start;}
+.sn{color:var(--yellow);font-weight:700;flex-shrink:0;}
+
+/* MERGE CONFLICT section inside daily */
+.mc-header{color:#ff7070;font-size:8px;font-weight:700;font-family:'Rajdhani',sans-serif;padding:2px 3px 1px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<button id="saveBtn" onclick="savePNG()">📸 Save as PNG</button>
+
+<div id="sheet">
+
+<!-- TITLE -->
+<div class="title-bar">
+  <div class="icon-box" style="background:#1a3a1a;border:1px solid #2ea02e;color:#fff;">›_</div>
+  <div class="icon-box" style="background:#c0392b;border:1px solid #e74c3c;color:#fff;">⎇</div>
+  <h1>Ultimate Full Git Cheatsheet (Full Image, All Commands, Max Explain)</h1>
+  <div class="icon-box" style="background:#c0392b;border:1px solid #e74c3c;color:#fff;">⎇</div>
+</div>
+
+<!-- ROW 1 -->
+<div class="row1">
+
+  <!-- 1. SETUP & CONFIG -->
+  <div class="panel g">
+    <div class="ph">1. Setup &amp; Config (Do This Once)</div>
+    <div class="pb">
+      <table>
+        <tr><th>Command</th><th>Explanation</th></tr>
+        <tr><td class="c">git init</td><td class="e">Initialize new Git repo in current directory.</td></tr>
+        <tr><td class="c">git clone &lt;url&gt;</td><td class="e">Clone remote repo from URL.</td></tr>
+        <tr><td class="c">git config --global user.name "Your Name"</td><td class="e">Set global username.</td></tr>
+        <tr><td class="c">git config --global user.email "you@example.com"</td><td class="e">Set global email.</td></tr>
+        <tr><td class="c">git config --global --list</td><td class="e">List all global configuration.</td></tr>
+        <tr><td class="c">git config --list</td><td class="e">List all configuration.</td></tr>
+        <tr><td class="c">git config &lt;key&gt; &lt;value&gt;</td><td class="e">Set a specific configuration.</td></tr>
+        <tr><td class="c">git remote add origin &lt;url&gt;</td><td class="e">Connect local repo to remote.</td></tr>
+        <tr><td class="c">git remote remove &lt;name&gt;</td><td class="e">Remove remote.</td></tr>
+        <tr><td class="c">git remote -v</td><td class="e">List remotes and their URLs.</td></tr>
+        <tr><td class="c">git config --global core.editor &lt;editor&gt;</td><td class="e">Set default text editor.</td></tr>
+      </table>
+      <div class="sl">Verify Setup</div>
+      <table>
+        <tr><td class="c">git config --global --list</td><td class="e">Check your name and email.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 2. BRANCHING & MERGING -->
+  <div class="panel p">
+    <div class="ph">2. Branching &amp; Merging</div>
+    <div class="pb">
+      <table>
+        <tr><th>Command</th><th>Explanation</th></tr>
+        <tr><td class="c">git branch</td><td class="e">List all branches.</td></tr>
+        <tr><td class="c">git branch &lt;name&gt;</td><td class="e">Create new branch.</td></tr>
+        <tr><td class="c">git switch &lt;name&gt;</td><td class="e">Switch to a branch.</td></tr>
+        <tr><td class="c">git switch -c &lt;name&gt;</td><td class="e">Create and switch to a new branch.</td></tr>
+        <tr><td class="c">git checkout &lt;name&gt;</td><td class="e">Switch to a branch (older command).</td></tr>
+        <tr><td class="c">git checkout -b &lt;name&gt;</td><td class="e">Create and switch to a new branch (older).</td></tr>
+        <tr><td class="c">git branch -d &lt;name&gt;</td><td class="e">Delete branch (safe if merged).</td></tr>
+        <tr><td class="c">git branch -D &lt;name&gt;</td><td class="e">Force delete branch.</td></tr>
+        <tr><td class="c">git merge &lt;branch&gt;</td><td class="e">Merge branch into current branch.</td></tr>
+        <tr><td class="c">git branch --merged</td><td class="e">List merged branches.</td></tr>
+        <tr><td class="c">git branch --no-merged</td><td class="e">List unmerged branches.</td></tr>
+        <tr><td class="c">git log --oneline --graph</td><td class="e">Compact log with graph.</td></tr>
+        <tr><td class="c">git log --all --graph</td><td class="e">Graph of all refs.</td></tr>
+        <tr><td class="c">git rebase</td><td class="e">Rebase current branch.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 3. REMOTES & SYNC -->
+  <div class="panel t">
+    <div class="ph">3. Remotes &amp; Synchronization (GitHub)</div>
+    <div class="pb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+        <div>
+          <table>
+            <tr><th>Command</th><th>Explanation</th></tr>
+            <tr><td class="c">git remote -v</td><td class="e">Show remote repository URLs.</td></tr>
+            <tr><td class="c">git remote add origin &lt;url&gt;</td><td class="e">Add remote named "origin".</td></tr>
+            <tr><td class="c">git remote remove &lt;name&gt;</td><td class="e">Remove a remote.</td></tr>
+            <tr><td class="c">git fetch</td><td class="e">Download objects and refs from remote.</td></tr>
+            <tr><td class="c">git pull</td><td class="e">Fetch and merge from remote.</td></tr>
+            <tr><td class="c">git pull --rebase</td><td class="e">Fetch and rebase on top of remote.</td></tr>
+            <tr><td class="c">git push</td><td class="e">Push commits to remote.</td></tr>
+            <tr><td class="c">git push -u origin &lt;branch&gt;</td><td class="e">Push and set upstream branch.</td></tr>
+            <tr><td class="c">git push --force</td><td class="e">Force push (use with caution).</td></tr>
+            <tr><td class="c">git push --force-with-lease</td><td class="e">Safer force push.</td></tr>
+            <tr><td class="c">git clone &lt;url&gt;</td><td class="e">Clone a remote repository.</td></tr>
+          </table>
+          <div class="sl">Daily Sync Flow</div>
+          <div class="sync"><span class="t">Morning:</span> git pull origin &lt;branch&gt;</div>
+          <div class="sync"><span class="t">Work:</span> edit → add → commit</div>
+          <div class="sync"><span class="t">Evening:</span> git push origin &lt;branch&gt;</div>
+        </div>
+        <div>
+          <div class="sl first" style="font-size:8px;">Local ↔ Remote</div>
+          <div class="lr">
+            <div class="lr-box">
+              <strong style="color:#4ade80;">LOCAL<br>YOUR REPOSITORY</strong>
+              <div>📁 Working Directory</div>
+              <div>📋 Staging Area</div>
+              <div>🗄️ Repository</div>
+            </div>
+            <div class="lr-arr">
+              <div style="color:#fb923c;">git push →</div>
+              <div style="color:#3fc8f0;">← git pull</div>
+            </div>
+            <div class="lr-box">
+              <strong style="color:#3fc8f0;">REMOTE<br>(e.g. GitHub)</strong>
+              <div>🌿 Branches</div>
+              <div>💾 Commits</div>
+              <div>📄 Files</div>
+            </div>
+          </div>
+          <div class="sl">What is "Origin"?</div>
+          <div class="orig"><strong>"origin"</strong> is the default remote name for your main remote repository. So git push sends your changes to origin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. UNDO & RECOVER -->
+  <div class="panel o">
+    <div class="ph">4. Undo &amp; Recover</div>
+    <div class="pb">
+      <table>
+        <tr><th>Command</th><th>Explanation</th></tr>
+        <tr><td class="c">git restore &lt;file&gt;</td><td class="e">Discard changes in working directory.</td></tr>
+        <tr><td class="c">git restore --staged &lt;file&gt;</td><td class="e">Unstage a file.</td></tr>
+        <tr><td class="c">git reset --soft &lt;commit&gt;</td><td class="e">Move HEAD (keep changes staged).</td></tr>
+        <tr><td class="c">git reset --mixed &lt;commit&gt;</td><td class="e">Move HEAD (keep changes unstaged).</td></tr>
+        <tr><td class="c">git reset --hard &lt;commit&gt;</td><td class="e">Move HEAD (discard all changes).</td></tr>
+        <tr><td class="c">git reset --soft HEAD~1</td><td class="e">Undo last commit, keep changes.</td></tr>
+        <tr><td class="c">git reset --mixed HEAD~1</td><td class="e">Undo last commit, unstage changes.</td></tr>
+        <tr><td class="c">git reset --hard HEAD~1</td><td class="e">Undo last commit, discard changes.</td></tr>
+        <tr><td class="c">git revert &lt;commit&gt;</td><td class="e">Create new commit to undo changes.</td></tr>
+        <tr><td class="c">git reflog</td><td class="e">Show reference log.</td></tr>
+      </table>
+      <div class="sl">Use Cases</div>
+      <table>
+        <tr><td class="e" style="white-space:nowrap;">Restore file changes:</td><td class="c">git restore &lt;file&gt;</td></tr>
+        <tr><td class="e" style="white-space:nowrap;">Unstage file:</td><td class="c">git restore --staged &lt;file&gt;</td></tr>
+        <tr><td class="e" style="white-space:nowrap;">Undo last commit (keep):</td><td class="c">git reset --soft HEAD~1</td></tr>
+        <tr><td class="e" style="white-space:nowrap;">Undo last commit (discard):</td><td class="c">git reset --hard HEAD~1</td></tr>
+        <tr><td class="e" style="white-space:nowrap;">See history of actions:</td><td class="c">git reflog</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 5. RESET EXPLAINED -->
+  <div class="panel r">
+    <div class="ph">5. Reset Explained</div>
+    <div class="pb">
+      <table>
+        <tr><th>Type</th><th>Effect</th></tr>
+      </table>
+      <!-- soft -->
+      <div style="padding:2px 3px 0;"><span style="color:#3fc8f0;font-weight:700;font-size:7.5px;">--soft</span></div>
+      <div class="rr">
+        <span class="rlab">HEAD →</span>
+        <span class="cd g">C2</span><span class="lh"></span>
+        <span class="cd g">C3</span><span class="lh"></span>
+        <span class="cd h">C4</span>
+      </div>
+      <div class="rdesc" style="padding:0 3px 2px;">Move HEAD. Keep changes staged.</div>
+      <!-- mixed -->
+      <div style="padding:2px 3px 0;"><span style="color:#3fc8f0;font-weight:700;font-size:7.5px;">--mixed</span></div>
+      <div class="rr">
+        <span class="rlab">HEAD →</span>
+        <span class="cd g">C2</span><span class="lh"></span>
+        <span class="cd h">C3</span><span class="lh"></span>
+        <span class="cd g">C4</span>
+      </div>
+      <div class="rdesc" style="padding:0 3px 2px;">Move HEAD. Unstage changes. (default)</div>
+      <!-- hard -->
+      <div style="padding:2px 3px 0;"><span style="color:#3fc8f0;font-weight:700;font-size:7.5px;">--hard</span></div>
+      <div class="rr">
+        <span class="rlab">HEAD →</span>
+        <span class="cd h">C2</span><span class="lh"></span>
+        <span class="cd g">C3</span><span class="lh"></span>
+        <span class="cd g">C4</span>
+      </div>
+      <div class="rdesc" style="padding:0 3px 2px;">Move HEAD. Discard all changes. (dangerous)</div>
+
+      <div class="sl">Legend</div>
+      <div class="legend">
+        <div class="li"><span class="dot" style="background:#4a4a4a;border:1px solid #777;"></span> Commit</div>
+        <div class="li"><span class="dot" style="background:#f97316;"></span> HEAD</div>
+        <div class="li"><span class="dot" style="background:#4ade80;"></span> Current</div>
+        <div class="li"><span class="dot" style="background:#555;"></span> Past</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end row1 -->
+
+<!-- ROW MID: Daily Workflow (left big) + right two panels -->
+<div class="row-mid">
+
+  <!-- 6. DAILY WORKFLOW -->
+  <div class="panel g">
+    <div class="ph">6. Daily Workflow (The Core) <span style="margin-left:auto;font-size:10px;">👤</span></div>
+    <div class="pb">
+      <div class="dw-inner">
+        <div>
+          <div class="sl first">In Action</div>
+          <table>
+            <tr><th>Command</th><th>Explanation</th></tr>
+            <tr><td class="c">git status</td><td class="e">Show staged, unstaged and untracked files.</td></tr>
+            <tr><td class="c">git add .</td><td class="e">Stage all changes.</td></tr>
+            <tr><td class="c">git commit -m "message"</td><td class="e">Commit staged changes.</td></tr>
+          </table>
+          <div class="sl">Stage Changes</div>
+          <table>
+            <tr><td class="c">git add &lt;file&gt;</td><td class="e">Stage a specific file.</td></tr>
+            <tr><td class="c">git add -A</td><td class="e">Stage all changes (including deletions).</td></tr>
+            <tr><td class="c">git add .</td><td class="e">Stage everything in current directory.</td></tr>
+            <tr><td class="c">git add -p</td><td class="e">Stage by parts (interactive).</td></tr>
+            <tr><td class="c">git add -u</td><td class="e">Stage modified and deleted files.</td></tr>
+          </table>
+          <div class="sl">Unstage Changes</div>
+          <table>
+            <tr><td class="c">git reset &lt;file&gt;</td><td class="e">Unstage a file (keep changes).</td></tr>
+            <tr><td class="c">git restore --staged &lt;file&gt;</td><td class="e">Unstage a file (modern way).</td></tr>
+          </table>
+          <div class="sl">View Changes</div>
+          <table>
+            <tr><td class="c">git diff</td><td class="e">Show changes not staged.</td></tr>
+            <tr><td class="c">git diff --staged</td><td class="e">Show changes staged.</td></tr>
+            <tr><td class="c">git diff &lt;file&gt;</td><td class="e">Show changes in a specific file.</td></tr>
+            <tr><td class="c">git diff --staged &lt;file&gt;</td><td class="e">Show changes in a specific file (staged).</td></tr>
+          </table>
+          <div class="sl">Good Commit Messages</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;padding:1px 2px;">
+            <div>
+              <div class="dot-item"><span class="chk">✅</span><span>Add login form validation</span></div>
+              <div class="dot-item"><span class="chk">✅</span><span>Fix crash on empty input</span></div>
+              <div class="dot-item"><span class="chk">✅</span><span>Improve error handling</span></div>
+              <div class="dot-item"><span class="chk">✅</span><span>Update README</span></div>
+            </div>
+            <div>
+              <div class="dot-item"><span class="x">❌</span><span>fix</span></div>
+              <div class="dot-item"><span class="x">❌</span><span>changes</span></div>
+              <div class="dot-item"><span class="x">❌</span><span>update</span></div>
+              <div class="dot-item"><span class="x">❌</span><span>WIP</span></div>
+            </div>
+          </div>
+          <div style="font-size:7px;color:#5a7a5a;padding:1px 3px;">Follow Conventional Commits if possible.</div>
+        </div>
+
+        <div>
+          <div class="mc-header">Merge Conflicts (Basics)</div>
+          <div class="steps">
+            <div class="si"><span class="sn">1.</span><span>Open conflicted file.</span></div>
+            <div class="si"><span class="sn">2.</span><span>Look for markers:</span></div>
+          </div>
+          <div class="conflict">
+            <span style="color:#f87171;">&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</span><br>
+            <span style="color:#5a7a5a;">=======</span><br>
+            <span style="color:#4ade80;">&gt;&gt;&gt;&gt;&gt;&gt;&gt; branch-name</span>
+          </div>
+          <div class="steps">
+            <div class="si"><span class="sn">3.</span><span>Edit file to keep correct content.</span></div>
+            <div class="si"><span class="sn">4.</span><span>git add &lt;file&gt;</span></div>
+            <div class="si"><span class="sn">5.</span><span>git commit</span></div>
+          </div>
+
+          <div class="sl">Branching Workflow (Typical)</div>
+          <!-- BRANCH DIAGRAM -->
+          <div class="bdiag">
+            <svg viewBox="0 0 200 70" xmlns="http://www.w3.org/2000/svg">
+              <text x="10" y="10" fill="#4ade80" font-size="7" font-family="monospace">main</text>
+              <line x1="10" y1="18" x2="190" y2="18" stroke="#4ade80" stroke-width="2"/>
+              <circle cx="30" cy="18" r="5" fill="#4ade80"/>
+              <circle cx="75" cy="18" r="5" fill="#4ade80"/>
+              <line x1="75" y1="18" x2="100" y2="45" stroke="#a78bfa" stroke-width="1.5"/>
+              <line x1="100" y1="45" x2="145" y2="45" stroke="#a78bfa" stroke-width="1.5"/>
+              <line x1="145" y1="45" x2="165" y2="18" stroke="#a78bfa" stroke-width="1.5"/>
+              <circle cx="100" cy="45" r="4" fill="#a78bfa"/>
+              <circle cx="122" cy="45" r="4" fill="#a78bfa"/>
+              <circle cx="145" cy="45" r="4" fill="#a78bfa"/>
+              <circle cx="165" cy="18" r="5" fill="#f97316"/>
+              <circle cx="185" cy="18" r="5" fill="#4ade80"/>
+              <text x="118" y="58" fill="#a78bfa" font-size="7" font-family="monospace">feature</text>
+              <text x="155" y="12" fill="#f97316" font-size="6" font-family="monospace">merge</text>
+            </svg>
+          </div>
+          <div class="steps">
+            <div class="si"><span class="sn">1.</span><span>git switch -c feature</span></div>
+            <div class="si"><span class="sn">2.</span><span>Work and commit</span></div>
+            <div class="si"><span class="sn">3.</span><span>git switch main</span></div>
+            <div class="si"><span class="sn">4.</span><span>git pull</span></div>
+            <div class="si"><span class="sn">5.</span><span>git merge feature</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Stash + Advanced -->
+  <div style="display:flex;flex-direction:column;gap:4px;">
+
+    <!-- 7. STASH -->
+    <div class="panel t">
+      <div class="ph">7. Stash (Save Work in Progress)</div>
+      <div class="stash-inner">
+        <div class="stash-col">
+          <table>
+            <tr><th>Command</th><th>Explanation</th></tr>
+            <tr><td class="c">git stash</td><td class="e">Stash (save) your changes.</td></tr>
+            <tr><td class="c">git stash push -m "message"</td><td class="e">Stash with a message.</td></tr>
+            <tr><td class="c">git stash list</td><td class="e">List all stashes.</td></tr>
+            <tr><td class="c">git stash show</td><td class="e">Show changes in latest stash.</td></tr>
+            <tr><td class="c">git stash show -p</td><td class="e">Show changes in latest stash (patch).</td></tr>
+            <tr><td class="c">git stash apply</td><td class="e">Apply latest stash (keep stash).</td></tr>
+            <tr><td class="c">git stash pop</td><td class="e">Apply latest stash and remove it.</td></tr>
+            <tr><td class="c">git stash drop</td><td class="e">Delete a stash.</td></tr>
+            <tr><td class="c">git stash clear</td><td class="e">Delete all stashes.</td></tr>
+          </table>
+        </div>
+        <div class="stash-col">
+          <div class="sl first">When to Use Stash?</div>
+          <div class="dot-item"><span>•</span><span>Switching branches quickly.</span></div>
+          <div class="dot-item"><span>•</span><span>Pulling latest changes.</span></div>
+          <div class="dot-item"><span>•</span><span>Half-done work.</span></div>
+          <div class="dot-item"><span>•</span><span>Trying something new.</span></div>
+        </div>
+        <div class="stash-col">
+          <div class="sl first">Example</div>
+          <div class="dot-item"><span class="c">git stash</span></div>
+          <div class="dot-item"><span class="c">git switch feature-branch</span></div>
+          <div class="dot-item"><span class="c">git pull</span></div>
+          <div class="dot-item"><span class="c">git stash pop</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. ADVANCED & USEFUL -->
+    <div class="panel d">
+      <div class="ph">8. Advanced &amp; Useful ⚙️</div>
+      <div class="pb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+          <table>
+            <tr><th>Command</th><th>Explanation</th></tr>
+            <tr><td class="c">git cherry-pick &lt;commit&gt;</td><td class="e">Apply a specific commit.</td></tr>
+            <tr><td class="c">git rebase &lt;branch&gt;</td><td class="e">Rebase current branch on another.</td></tr>
+            <tr><td class="c">git rebase -i &lt;commit&gt;</td><td class="e">Interactive rebase.</td></tr>
+            <tr><td class="c">git tag</td><td class="e">List all tags.</td></tr>
+            <tr><td class="c">git tag -a &lt;name&gt; -m "msg"</td><td class="e">Create annotated tag.</td></tr>
+            <tr><td class="c">git push --tags</td><td class="e">Push all tags.</td></tr>
+            <tr><td class="c">git commit --amend</td><td class="e">Amend last commit.</td></tr>
+          </table>
+          <table>
+            <tr><th>Command</th><th>Explanation</th></tr>
+            <tr><td class="c">git bisect start</td><td class="e">Start binary search for bug.</td></tr>
+            <tr><td class="c">git bisect good &lt;commit&gt;</td><td class="e">Mark commit as good.</td></tr>
+            <tr><td class="c">git bisect bad &lt;commit&gt;</td><td class="e">Mark commit as bad.</td></tr>
+            <tr><td class="c">git bisect reset</td><td class="e">End bisect.</td></tr>
+            <tr><td class="c">git submodule init</td><td class="e">Init submodules.</td></tr>
+            <tr><td class="c">git submodule update</td><td class="e">Update submodules.</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- end row-mid -->
+
+<!-- ROW 2 BOTTOM -->
+<div class="row2">
+
+  <!-- 9. HISTORY & LOGS -->
+  <div class="panel g">
+    <div class="ph">9. History &amp; Logs</div>
+    <div class="pb">
+      <table>
+        <tr><th>Command</th><th>Explanation</th></tr>
+        <tr><td class="c">git log</td><td class="e">Show commit history.</td></tr>
+        <tr><td class="c">git log --oneline</td><td class="e">Compact history.</td></tr>
+        <tr><td class="c">git log --graph</td><td class="e">Show history as graph.</td></tr>
+        <tr><td class="c">git log --pretty=oneline --graph --all</td><td class="e">Detailed compact graph.</td></tr>
+        <tr><td class="c">git show &lt;commit&gt;</td><td class="e">Show details of a commit.</td></tr>
+        <tr><td class="c">git blame &lt;file&gt;</td><td class="e">Who changed each line.</td></tr>
+        <tr><td class="c">git reflog</td><td class="e">Show reference log.</td></tr>
+        <tr><td class="c">git shortlog -sn</td><td class="e">Summary of commits by author.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 10. FILE MANAGEMENT -->
+  <div class="panel p">
+    <div class="ph">10. File Management</div>
+    <div class="pb">
+      <table>
+        <tr><th>Command</th><th>Explanation</th></tr>
+        <tr><td class="c">git mv &lt;file&gt; &lt;new-name&gt;</td><td class="e">Rename a file.</td></tr>
+        <tr><td class="c">git rm &lt;file&gt;</td><td class="e">Remove a file.</td></tr>
+        <tr><td class="c">git clean -fd</td><td class="e">Remove untracked files.</td></tr>
+        <tr><td class="c">git clean -xfd</td><td class="e">Remove untracked files and dirs.</td></tr>
+        <tr><td class="c">git ls-files</td><td class="e">List tracked files.</td></tr>
+        <tr><td class="c">git ls-files --others --exclude-standard</td><td class="e">List untracked files.</td></tr>
+        <tr><td class="c">.gitignore</td><td class="e">Ignore files/directories.</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 11. GITIGNORE -->
+  <div class="panel t">
+    <div class="ph">11. Gitignore Example</div>
+    <div class="pb">
+      <div class="sl first">What to Always Ignore</div>
+      <div class="ig-grid">
+        <div class="ig-sec">
+          <div class="lang"># Python</div>
+          <div>__pycache__/</div>
+          <div>*.pyc</div>
+          <div>*.pyo</div>
+          <div>.env</div>
+          <div>.venv/</div>
+          <br>
+          <div class="lang"># Node</div>
+          <div>node_modules/</div>
+          <div>.env</div>
+        </div>
+        <div class="ig-sec">
+          <div class="lang"># OS / Editor</div>
+          <div>.DS_Store</div>
+          <div>Thumbs.db</div>
+          <div>*.swp</div>
+          <div>.vscode/</div>
+          <div>*.log</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 12. GIT FLOW -->
+  <div class="panel o">
+    <div class="ph">12. Git Flow Cheatsheet (Typical)</div>
+    <div class="pb">
+      <table class="gf">
+        <tr><th>Step</th><th>Command(s)</th></tr>
+        <tr><td class="e">Start a project</td><td class="c">git init / git clone</td></tr>
+        <tr><td class="e">Create a feature</td><td class="c">git switch -c feature/your-feature</td></tr>
+        <tr><td class="e">Work &amp; commit</td><td class="c">edit → git add . → git commit</td></tr>
+        <tr><td class="e">Push feature</td><td class="c">git push -u origin feature/your-feature</td></tr>
+        <tr><td class="e">Create PR</td><td class="e" style="color:#fb923c;">Open Pull Request</td></tr>
+        <tr><td class="e">Review &amp; merge</td><td class="e" style="color:#4ade80;">Merge to main branch</td></tr>
+        <tr><td class="e">Update main</td><td class="c">git switch main &amp;&amp; git pull</td></tr>
+        <tr><td class="e">Cleanup</td><td class="c">git branch -d feature/your-feature</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- 13. GOOD PRACTICES -->
+  <div class="panel d">
+    <div class="ph">13. Good Practices</div>
+    <div class="pb">
+      <div class="dot-item"><span class="chk">✅</span><span>Commit small, logical changes.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Write meaningful commit messages.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Pull before you push.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Use branches for features &amp; fixes.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Review code before merging.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Keep main branch clean.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Use .gitignore properly.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Don't commit secrets or large files.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Use conventional commits.</span></div>
+    </div>
+  </div>
+
+</div><!-- end row2 -->
+
+<!-- FORK & PR WORKFLOW ROW -->
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-bottom:4px;">
+
+  <!-- FORK WORKFLOW: NO WRITE ACCESS -->
+  <div class="panel p">
+    <div class="ph">🍴 Fork + PR Workflow (No Write Access)</div>
+    <div class="pb">
+      <div class="sl first" style="color:#3fc8f0;font-size:8px;">When to use: You found a repo (public or private with read-only access) and want to contribute</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:3px;">
+        <div>
+          <table>
+            <tr><th colspan="2">Step-by-Step Commands</th></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 1</td><td class="e">Click <span style="color:#3fc8f0;">Fork</span> button on GitHub (top-right)</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 2</td><td class="c">git clone https://github.com/YOU/REPO.git</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 3</td><td class="c">git remote add upstream https://github.com/OWNER/REPO.git</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 4</td><td class="c">git remote -v</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 5</td><td class="c">git checkout -b my-feature</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 6</td><td class="c">git add . &amp;&amp; git commit -m "msg"</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 7</td><td class="c">git push -u origin my-feature</td></tr>
+            <tr><td class="c" style="color:#ffe066;white-space:nowrap;">Step 8</td><td class="e">Open <span style="color:#3fc8f0;">Pull Request</span> on GitHub UI</td></tr>
+          </table>
+          <div class="sl">After git remote -v you should see:</div>
+          <div style="background:rgba(0,0,0,0.3);border-radius:2px;padding:3px 5px;font-size:7.5px;">
+            <div><span style="color:#4ade80;">origin</span>   https://github.com/<span style="color:#ffe066;">YOU</span>/REPO.git</div>
+            <div><span style="color:#f97316;">upstream</span> https://github.com/<span style="color:#ffe066;">OWNER</span>/REPO.git</div>
+          </div>
+        </div>
+        <div>
+          <!-- FORK DIAGRAM -->
+          <div style="padding:2px 0 4px;">
+            <svg viewBox="0 0 210 130" xmlns="http://www.w3.org/2000/svg" style="width:100%;">
+              <!-- Original repo box -->
+              <rect x="60" y="2" width="90" height="22" rx="3" fill="#1a0a30" stroke="#7c3aed" stroke-width="1"/>
+              <text x="105" y="10" fill="#c47fff" font-size="6.5" font-family="monospace" text-anchor="middle">ORIGINAL REPO</text>
+              <text x="105" y="19" fill="#8b7a9a" font-size="5.5" font-family="monospace" text-anchor="middle">github.com/OWNER/REPO</text>
+
+              <!-- Fork arrow down-left -->
+              <line x1="75" y1="24" x2="40" y2="48" stroke="#3fc8f0" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="28" y="40" fill="#3fc8f0" font-size="5.5" font-family="monospace">Fork ⑁</text>
+
+              <!-- Your fork box -->
+              <rect x="2" y="48" width="80" height="22" rx="3" fill="#052a3a" stroke="#0e6a8a" stroke-width="1"/>
+              <text x="42" y="57" fill="#3fc8f0" font-size="6.5" font-family="monospace" text-anchor="middle">YOUR FORK</text>
+              <text x="42" y="65" fill="#4a7a8a" font-size="5.5" font-family="monospace" text-anchor="middle">github.com/YOU/REPO</text>
+
+              <!-- Clone arrow -->
+              <line x1="42" y1="70" x2="42" y2="90" stroke="#4ade80" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="46" y="83" fill="#4ade80" font-size="5.5" font-family="monospace">git clone</text>
+
+              <!-- Local box -->
+              <rect x="2" y="90" width="80" height="22" rx="3" fill="#0c1f0e" stroke="#2a6e2a" stroke-width="1"/>
+              <text x="42" y="100" fill="#7fff7f" font-size="6.5" font-family="monospace" text-anchor="middle">YOUR LOCAL</text>
+              <text x="42" y="108" fill="#4a6a4a" font-size="5.5" font-family="monospace" text-anchor="middle">origin + upstream</text>
+
+              <!-- Push back to fork -->
+              <path d="M 82 101 Q 130 101 130 70 Q 130 48 82 55" fill="none" stroke="#fb923c" stroke-width="1" stroke-dasharray="3,2"/>
+              <text x="135" y="78" fill="#fb923c" font-size="5.5" font-family="monospace">git push</text>
+              <text x="132" y="85" fill="#fb923c" font-size="5.5" font-family="monospace">origin</text>
+
+              <!-- PR arrow to original -->
+              <line x1="82" y1="52" x2="105" y2="30" stroke="#ffe066" stroke-width="1.2" stroke-dasharray="2,2"/>
+              <text x="118" y="46" fill="#ffe066" font-size="5.5" font-family="monospace">Pull</text>
+              <text x="115" y="53" fill="#ffe066" font-size="5.5" font-family="monospace">Request</text>
+              <polygon points="108,28 103,36 112,33" fill="#ffe066"/>
+
+              <!-- upstream fetch arrow -->
+              <line x1="105" y1="24" x2="42" y2="90" stroke="#a78bfa" stroke-width="0.8" stroke-dasharray="2,3"/>
+              <text x="68" y="62" fill="#a78bfa" font-size="5" font-family="monospace" transform="rotate(-38,68,62)">upstream fetch</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPARISON: FORK vs COLLABORATOR -->
+  <div class="panel o">
+    <div class="ph">🔀 Fork vs Collaborator — Which Workflow?</div>
+    <div class="pb">
+      <table>
+        <tr>
+          <th>Situation</th>
+          <th style="color:#4ade80;">Collaborator (Direct)</th>
+          <th style="color:#3fc8f0;">Fork + PR</th>
+        </tr>
+        <tr>
+          <td class="e">Do you have write access?</td>
+          <td style="color:#4ade80;font-size:7.5px;">✅ Yes</td>
+          <td style="color:#f87171;font-size:7.5px;">❌ No (read-only / public)</td>
+        </tr>
+        <tr>
+          <td class="e">Clone which repo?</td>
+          <td class="c">Original repo</td>
+          <td class="c">Your fork</td>
+        </tr>
+        <tr>
+          <td class="e">Push where?</td>
+          <td class="c">git push origin branch</td>
+          <td class="c">git push origin branch<br><span style="color:#5a7a5a;">(to your fork)</span></td>
+        </tr>
+        <tr>
+          <td class="e">Need PR?</td>
+          <td style="color:#fb923c;font-size:7.5px;">Optional (depends on team)</td>
+          <td style="color:#ffe066;font-size:7.5px;">✅ Always required</td>
+        </tr>
+        <tr>
+          <td class="e">Add upstream remote?</td>
+          <td style="color:#5a7a5a;font-size:7.5px;">❌ Not needed</td>
+          <td style="color:#4ade80;font-size:7.5px;">✅ Required</td>
+        </tr>
+        <tr>
+          <td class="e">Who merges?</td>
+          <td class="e">You (if allowed) or team</td>
+          <td class="e">Original repo owner</td>
+        </tr>
+        <tr>
+          <td class="e">Private repo?</td>
+          <td class="e">Owner invited you as collaborator</td>
+          <td class="e">Need at least read access to fork</td>
+        </tr>
+        <tr>
+          <td class="e">Public repo?</td>
+          <td style="color:#5a7a5a;font-size:7.5px;">Rare (need invite)</td>
+          <td style="color:#4ade80;font-size:7.5px;">✅ Standard open source way</td>
+        </tr>
+      </table>
+      <div class="sl">The Golden Rule</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:2px;">
+        <div style="background:rgba(74,222,128,0.08);border:1px solid #2a6e2a;border-radius:2px;padding:3px 5px;">
+          <div style="color:#4ade80;font-weight:700;font-size:8px;margin-bottom:2px;">✅ Direct Collaborator</div>
+          <div class="c" style="font-size:7px;">git clone ORIGINAL</div>
+          <div class="c" style="font-size:7px;">git checkout -b feature</div>
+          <div class="c" style="font-size:7px;">git push origin feature</div>
+          <div class="e" style="font-size:7px;margin-top:2px;">→ Open PR from branch in same repo</div>
+        </div>
+        <div style="background:rgba(63,200,240,0.08);border:1px solid #0e6a8a;border-radius:2px;padding:3px 5px;">
+          <div style="color:#3fc8f0;font-weight:700;font-size:8px;margin-bottom:2px;">🍴 Fork Workflow</div>
+          <div class="c" style="font-size:7px;">git clone YOUR_FORK</div>
+          <div class="c" style="font-size:7px;">git remote add upstream ORIGINAL</div>
+          <div class="c" style="font-size:7px;">git checkout -b feature</div>
+          <div class="c" style="font-size:7px;">git push origin feature</div>
+          <div class="e" style="font-size:7px;margin-top:2px;">→ PR from your fork to original</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEEP FORK UP TO DATE + PR TIPS -->
+  <div class="panel g">
+    <div class="ph">🔄 Keep Fork Up-to-Date + PR Tips</div>
+    <div class="pb">
+      <div class="sl first">Syncing your fork with the original repo (important!)</div>
+      <table>
+        <tr><th>Command</th><th>Why</th></tr>
+        <tr><td class="c">git fetch upstream</td><td class="e">Download latest changes from original.</td></tr>
+        <tr><td class="c">git checkout main</td><td class="e">Switch to your local main branch.</td></tr>
+        <tr><td class="c">git merge upstream/main</td><td class="e">Merge original's main into yours.</td></tr>
+        <tr><td class="c">git push origin main</td><td class="e">Update your fork on GitHub too.</td></tr>
+      </table>
+      <div class="sl">Or use rebase instead of merge:</div>
+      <table>
+        <tr><td class="c">git fetch upstream</td><td class="e">Download updates.</td></tr>
+        <tr><td class="c">git rebase upstream/main</td><td class="e">Rebase your branch on top of original.</td></tr>
+      </table>
+
+      <div class="sl">Good Pull Request Tips</div>
+      <div class="dot-item"><span class="chk">✅</span><span>One feature / one fix per PR — keep it small.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Write a clear title and description.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Sync with upstream before opening PR.</span></div>
+      <div class="dot-item"><span class="chk">✅</span><span>Respond to review comments quickly.</span></div>
+      <div class="dot-item"><span class="x">❌</span><span>Don't push to main directly on your fork if PR is open.</span></div>
+      <div class="dot-item"><span class="x">❌</span><span>Don't force push after PR is reviewed.</span></div>
+
+      <div class="sl">PR States on GitHub</div>
+      <table>
+        <tr>
+          <td style="color:#ffe066;font-size:7.5px;white-space:nowrap;">🟡 Open</td>
+          <td class="e">Waiting for review / merge.</td>
+        </tr>
+        <tr>
+          <td style="color:#4ade80;font-size:7.5px;white-space:nowrap;">🟢 Merged</td>
+          <td class="e">Your changes are now in the original.</td>
+        </tr>
+        <tr>
+          <td style="color:#f87171;font-size:7.5px;white-space:nowrap;">🔴 Closed</td>
+          <td class="e">Rejected or closed without merge.</td>
+        </tr>
+        <tr>
+          <td style="color:#a78bfa;font-size:7.5px;white-space:nowrap;">🟣 Draft</td>
+          <td class="e">Work in progress, not ready yet.</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+</div><!-- end fork row -->
+
+<!-- BOTTOM BAR -->
+<div class="bottom">
+  <div class="brand">THE GIT LOOP 🖊</div>
+  <div class="loop">
+    <span class="lnum">1</span> Make Changes
+    <span class="arr">→</span>
+    <span class="lnum">2</span> git status
+    <span class="arr">→</span>
+    <span class="lnum">3</span> git add
+    <span class="arr">→</span>
+    <span class="lnum">4</span> git commit
+    <span class="arr">→</span>
+    <span class="lnum">5</span> git push
+    <span class="arr">→</span>
+    <span style="font-size:14px;">☁</span>
+  </div>
+  <div class="rem">REMEMBER: PRACTICE MAKES PERFECT! (Max Resource ever.)</div>
+</div>
+
+</div><!-- end #sheet -->
+
+<script>
+async function savePNG() {
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating PNG...';
+  btn.style.display = 'none';
+
+  try {
+    const sheet = document.getElementById('sheet');
+    const canvas = await html2canvas(sheet, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#0a0f14',
+      logging: false,
+      width: sheet.scrollWidth,
+      height: sheet.scrollHeight,
+      windowWidth: sheet.scrollWidth + 20,
+    });
+
+    const link = document.createElement('a');
+    link.download = 'git-cheatsheet.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  } catch(e) {
+    alert('Error generating PNG: ' + e.message);
+  } finally {
+    btn.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = '📸 Save as PNG';
+  }
+}
+</script>
+
+</body>
+</html>
