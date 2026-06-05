@@ -37,7 +37,7 @@ python3 kezmo.py suspicious_image.jpg -y
 python3 kezmo.py suspicious_image.jpg -y -no
 ```
 
-![[video test.mp4]]
+![[video_test.mp4]]
 ### Flags
 
 | Flag | Description |
