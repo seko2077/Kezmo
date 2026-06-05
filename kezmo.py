@@ -17,6 +17,8 @@ import urllib.parse
 import json
 import math
 import hashlib
+import gzip
+import zlib
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
@@ -78,6 +80,9 @@ results = {
 # When True, skip writing output files (strings_output.txt, kezmo_report.json)
 NO_OUTPUT = False
 
+# When True, auto-answer 'yes' to all interactive prompts
+AUTO_YES = False
+
 # Global output directory — set in main() to <filename>_output/
 OUTPUT_DIR = "."
 
@@ -100,7 +105,7 @@ def print_banner():
      ║  {C.BRIGHT_WHITE}Forensic · Stego · CTF Toolkit{C.CYAN}      ║
      ║  {C.DIM}{C.WHITE}v1.0  —  Built for Kali Linux{C.RESET}{C.CYAN}{C.BOLD}       ║
      ╚══════════════════════════════════════╝{C.RESET}
-{C.DIM}{C.WHITE}     Author: SAIF  |  github.com/SAIF{C.RESET}
+{C.DIM}{C.WHITE}     Author: SAIF  |  github.com/seko2077 {C.RESET}
 """
     print(banner)
 
@@ -169,7 +174,10 @@ def print_progress(current, total, module_name):
 # ============================================================================
 
 def ask_yes_no(prompt):
-    """Interactive Y/N prompt → bool."""
+    """Interactive Y/N prompt → bool. Auto-returns True if -y flag is set."""
+    if AUTO_YES:
+        print(f"\n  {C.BRIGHT_YELLOW}?  {prompt} (y/n): {C.BRIGHT_GREEN}y (auto){C.RESET}")
+        return True
     while True:
         try:
             ans = input(f"\n  {C.BRIGHT_YELLOW}?  {prompt} (y/n): {C.RESET}").strip().lower()
@@ -1040,17 +1048,71 @@ def is_printable_string(s):
     return (printable_count / len(s)) >= 0.90
 
 
+def clean_encoded_string(s):
+    """
+    Strip noise characters that break decoding but aren't part of the data.
+    EXIF comments often have dots, spaces, or newlines injected as separators.
+    Example: 'H4sIC...base64data..==' → 'H4sICbase64data=='
+    """
+    # Remove dots, spaces, newlines, carriage returns, tabs
+    cleaned = re.sub(r'[\.\s\r\n\t]', '', s)
+    return cleaned
+
+
 def try_base64(s):
     """Attempt base64 decode. Returns decoded string or None."""
     try:
         # Must be valid base64 chars and reasonable length
-        if not re.match(r'^[A-Za-z0-9+/]+=*$', s):
+        cleaned = clean_encoded_string(s)
+        if not re.match(r'^[A-Za-z0-9+/]+=*$', cleaned):
             return None
-        if len(s) < 4:
+        if len(cleaned) < 4:
             return None
-        decoded = base64.b64decode(s).decode("utf-8", errors="replace")
+        decoded = base64.b64decode(cleaned).decode("utf-8", errors="replace")
         if is_printable_string(decoded) and decoded != s:
             return decoded
+    except Exception:
+        pass
+    return None
+
+
+def try_base64_compressed(s):
+    """
+    Smart chained decode: Base64 → detect Gzip/Zlib → decompress → plaintext.
+    Handles CTF patterns like base64-encoded gzip files embedded in EXIF comments.
+    Also strips noise characters (dots, spaces) before decoding.
+    """
+    try:
+        cleaned = clean_encoded_string(s)
+        if not re.match(r'^[A-Za-z0-9+/]+=*$', cleaned):
+            return None
+        if len(cleaned) < 8:
+            return None
+
+        raw_bytes = base64.b64decode(cleaned)
+
+        # Check for Gzip magic bytes: \x1f\x8b
+        if raw_bytes[:2] == b'\x1f\x8b':
+            try:
+                decompressed = gzip.decompress(raw_bytes).decode("utf-8", errors="replace")
+                if is_printable_string(decompressed):
+                    return decompressed
+            except Exception:
+                pass
+
+        # Check for Zlib (starts with \x78\x9c, \x78\x01, \x78\xda)
+        if raw_bytes[:1] == b'\x78':
+            try:
+                decompressed = zlib.decompress(raw_bytes).decode("utf-8", errors="replace")
+                if is_printable_string(decompressed):
+                    return decompressed
+            except Exception:
+                pass
+
+        # Check for PK (zip) magic
+        if raw_bytes[:2] == b'PK':
+            return "[ZIP archive detected — save and extract manually]"
+
     except Exception:
         pass
     return None
@@ -1136,13 +1198,14 @@ def module_auto_decode(text):
 
     # Extract candidate strings (words that look encoded)
     # Look for long alphanumeric strings, base64-like, hex-like, url-encoded
-    # Cap individual string length at 500 to avoid wasting time on huge blobs
-    MAX_CANDIDATE_LEN = 500
+    # Cap individual string length at 2000 for compressed b64 (gzip can be long)
+    MAX_CANDIDATE_LEN = 2000
     MAX_CANDIDATES = 500  # Hard cap to keep runtime reasonable
     candidates = set()
 
     # Base64 candidates: long alphanumeric with possible padding
-    candidates.update(s for s in re.findall(r'[A-Za-z0-9+/]{8,}={0,2}', text) if len(s) <= MAX_CANDIDATE_LEN)
+    # Also capture strings with dots/spaces that might be noise-separated b64
+    candidates.update(s for s in re.findall(r'[A-Za-z0-9+/\.]{8,}={0,2}', text) if len(s) <= MAX_CANDIDATE_LEN)
     # Hex candidates: even-length hex strings
     candidates.update(s for s in re.findall(r'\b[A-Fa-f0-9]{8,}\b', text) if len(s) <= MAX_CANDIDATE_LEN)
     # URL-encoded candidates
@@ -1164,6 +1227,7 @@ def module_auto_decode(text):
     print_result("Candidates", f"Testing {len(candidates)} string(s) for encoded content", C.CYAN)
 
     decoders = [
+        ("Base64+Gzip", try_base64_compressed),  # Chained: b64 → gzip/zlib
         ("Base64", try_base64),
         ("Base32", try_base32),
         ("Base85", try_base85),
@@ -1517,19 +1581,27 @@ def export_json_report():
 def main():
     """Entry point — argument parsing and orchestration of all 11 modules."""
 
-    global NO_OUTPUT
+    global NO_OUTPUT, AUTO_YES
 
-    # ── Parse -no flag ──
-    args = [a for a in sys.argv[1:] if a != "-no"]
+    # ── Parse flags ──
+    flags = {"-no", "-y"}
+    args = [a for a in sys.argv[1:] if a not in flags]
     if "-no" in sys.argv:
         NO_OUTPUT = True
+    if "-y" in sys.argv:
+        AUTO_YES = True
 
     # ── Argument check ──
     if len(args) != 1:
         print_banner()
-        print(f"  {C.BRIGHT_RED}Usage: python3 kezmo.py <file> [-no]{C.RESET}")
-        print(f"  {C.DIM}Example: python3 kezmo.py suspicious_image.jpg{C.RESET}")
-        print(f"  {C.DIM}         python3 kezmo.py file.jpg -no  (no output files){C.RESET}\n")
+        print(f"  {C.BRIGHT_RED}Usage: python3 kezmo.py <file> [-y] [-no]{C.RESET}")
+        print(f"  {C.DIM}Flags:{C.RESET}")
+        print(f"  {C.DIM}  -y   Auto-answer 'yes' to all prompts (unattended mode){C.RESET}")
+        print(f"  {C.DIM}  -no  Skip creating output files (keeps disk clean){C.RESET}")
+        print(f"  {C.DIM}Examples:{C.RESET}")
+        print(f"  {C.DIM}  python3 kezmo.py suspicious_image.jpg{C.RESET}")
+        print(f"  {C.DIM}  python3 kezmo.py file.jpg -y           (auto-yes){C.RESET}")
+        print(f"  {C.DIM}  python3 kezmo.py file.jpg -y -no       (auto-yes, no files){C.RESET}\n")
         sys.exit(1)
 
     filepath = args[0]
@@ -1632,7 +1704,9 @@ def main():
     #  MODULE 9: Auto Decoding
     # ═══════════════════════════════════════════════════════
     print_progress(9, total_modules, "Auto Decoding")
-    module_auto_decode(strings_output)
+    # Combine strings + EXIF output for comprehensive decoding
+    all_text_for_decode = (strings_output or "") + "\n" + (exif_output or "")
+    module_auto_decode(all_text_for_decode)
 
     # ═══════════════════════════════════════════════════════
     #  MODULE 10: Steganography (LAST analysis module)
