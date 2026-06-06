@@ -47,8 +47,9 @@ Whether you're a beginner learning forensics or a seasoned CTF player who wants 
 
 ## 🎬 Demo
 
-![KEZMO Demo](videotest.gif)
+![KEZMO Demo](text_example.gif)
 
+btw the password was 12345
 ---
 
 ## 📦 Installation
