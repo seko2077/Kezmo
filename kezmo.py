@@ -1725,7 +1725,8 @@ def main():
 #  ENTRY POINT
 # ============================================================================
 
-if __name__ == "__main__":
+def cli():
+    """CLI entry point with error handling — used by both direct run and pip install."""
     try:
         main()
     except KeyboardInterrupt:
@@ -1736,3 +1737,7 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
+
+
+if __name__ == "__main__":
+    cli()

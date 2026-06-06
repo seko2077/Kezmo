@@ -183,3 +183,11 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Python packaging
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+*.egg
